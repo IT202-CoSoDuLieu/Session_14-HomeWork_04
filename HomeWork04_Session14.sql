@@ -2,11 +2,8 @@ DROP DATABASE IF EXISTS RikkeiClinicDB;
 CREATE DATABASE RikkeiClinicDB;
 USE RikkeiClinicDB;
 
--- =========================================================
--- PHẦN 1: KHỞI TẠO CẤU TRÚC DATABASE
--- =========================================================
-
--- 1. Bảng Bệnh nhân
+-- KHỞI TẠO CẤU TRÚC DATABASE
+-- Bảng Bệnh nhân
 CREATE TABLE Patients (
     patient_id INT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -14,7 +11,7 @@ CREATE TABLE Patients (
     date_of_birth DATE
 );
 
--- 2. Bảng Nhân viên / Bác sĩ
+-- Bảng Nhân viên / Bác sĩ
 CREATE TABLE Employees (
     employee_id INT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -22,13 +19,13 @@ CREATE TABLE Employees (
     salary DECIMAL(18,2) NOT NULL
 );
 
--- 3. Bảng Khoa
+-- Bảng Khoa
 CREATE TABLE Departments (
     dept_id INT PRIMARY KEY,
     dept_name VARCHAR(100) NOT NULL
 );
 
--- 4. Bảng Giường bệnh
+-- Bảng Giường bệnh
 CREATE TABLE Beds (
     bed_id INT PRIMARY KEY,
     dept_id INT NOT NULL,
@@ -37,7 +34,7 @@ CREATE TABLE Beds (
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id)
 );
 
--- 5. Bảng Lịch khám
+-- Bảng Lịch khám
 CREATE TABLE Appointments (
     appointment_id INT PRIMARY KEY,
     patient_id INT NOT NULL,
@@ -48,14 +45,14 @@ CREATE TABLE Appointments (
     FOREIGN KEY (doctor_id) REFERENCES Employees(employee_id)
 );
 
--- 6. Bảng Kho vật tư
+-- Bảng Kho vật tư
 CREATE TABLE Inventory (
     item_id INT PRIMARY KEY,
     item_name VARCHAR(100) NOT NULL,
     stock_quantity INT NOT NULL DEFAULT 0
 );
 
--- 7. Bảng Thuốc
+-- Bảng Thuốc
 CREATE TABLE Medicines (
     medicine_id INT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -63,7 +60,7 @@ CREATE TABLE Medicines (
     stock INT NOT NULL DEFAULT 0
 );
 
--- 8. Bảng Công nợ bệnh nhân
+-- Bảng Công nợ bệnh nhân
 CREATE TABLE Patient_Invoices (
     patient_id INT PRIMARY KEY,
     total_due DECIMAL(18,2) NOT NULL DEFAULT 0,
@@ -71,7 +68,7 @@ CREATE TABLE Patient_Invoices (
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id)
 );
 
--- 9. Bảng Sản phẩm
+-- Bảng Sản phẩm
 CREATE TABLE Products (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
@@ -79,14 +76,14 @@ CREATE TABLE Products (
     stock INT NOT NULL DEFAULT 0
 );
 
--- 10. Bảng Dịch vụ
+-- Bảng Dịch vụ
 CREATE TABLE Services (
     service_id INT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     price DECIMAL(18,2) NOT NULL
 );
 
--- 11. Bảng Ví điện tử
+-- Bảng Ví điện tử
 CREATE TABLE Wallets (
     patient_id INT PRIMARY KEY,
     balance DECIMAL(18,2) NOT NULL DEFAULT 0,
@@ -94,7 +91,7 @@ CREATE TABLE Wallets (
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id)
 );
 
--- 12. Bảng Lịch sử sử dụng dịch vụ
+--  Bảng Lịch sử sử dụng dịch vụ
 CREATE TABLE Service_Usages (
     usage_id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT NOT NULL,
@@ -104,10 +101,6 @@ CREATE TABLE Service_Usages (
     FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
     FOREIGN KEY (service_id) REFERENCES Services(service_id)
 );
-
--- =========================================================
--- PHẦN 2: CHÈN DỮ LIỆU MẪU
--- =========================================================
 
 -- Bệnh nhân
 INSERT INTO Patients VALUES
@@ -173,16 +166,11 @@ INSERT INTO Wallets VALUES
 (2, 50000, 'Active'),
 (3, 1000000, 'Inactive');
 
--- =========================================================
--- PHẦN 3: PHÂN TÍCH GIẢI PHÁP
--- =========================================================
+-- PHÂN TÍCH GIẢI PHÁP
 
 /*
 
-===========================
 1. ĐỊNH NGHĨA INPUT / OUTPUT
-===========================
-
 Đầu vào:
 - p_patient_id INT
   -> Mã bệnh nhân thực hiện thanh toán.
@@ -194,10 +182,7 @@ INSERT INTO Wallets VALUES
 - p_status_message VARCHAR(255)
   -> Thông báo trạng thái giao dịch.
 
-
-===========================
-2. ĐỀ XUẤT GIẢI PHÁP
-===========================
+ĐỀ XUẤT GIẢI PHÁP
 
 CHIẾN LƯỢC 1:
 - Thực hiện UPDATE trực tiếp.
@@ -240,9 +225,7 @@ Chọn CHIẾN LƯỢC 2 vì:
 
 */
 
--- =========================================================
--- PHẦN 4: THIẾT KẾ LUỒNG XỬ LÝ
--- =========================================================
+-- THIẾT KẾ LUỒNG XỬ LÝ
 
 /*
 
@@ -283,9 +266,7 @@ ROLLBACK toàn bộ dữ liệu.
 
 */
 
--- =========================================================
--- PHẦN 5: TRIỂN KHAI PROCEDURE
--- =========================================================
+-- TRIỂN KHAI PROCEDURE
 
 DROP PROCEDURE IF EXISTS ProcessPayment;
 
@@ -303,10 +284,7 @@ proc_main: BEGIN
     DECLARE v_status VARCHAR(20);
     DECLARE v_total_due DECIMAL(18,2);
 
-    -- =====================================================
     -- HANDLER: rollback nếu có lỗi hệ thống
-    -- =====================================================
-
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
@@ -315,10 +293,7 @@ proc_main: BEGIN
         'Lỗi hệ thống: Giao dịch đã được hoàn tác.';
     END;
 
-    -- =====================================================
     -- KIỂM TRA DỮ LIỆU ĐẦU VÀO
-    -- =====================================================
-
     IF p_amount <= 0 THEN
 
         SET p_status_message =
@@ -328,26 +303,17 @@ proc_main: BEGIN
 
     END IF;
 
-    -- =====================================================
-    -- BẮT ĐẦU TRANSACTION
-    -- =====================================================
-
     START TRANSACTION;
 
-    -- =====================================================
     -- KHÓA DỮ LIỆU VÍ
-    -- =====================================================
-
+    
     SELECT balance, status
     INTO v_balance, v_status
     FROM Wallets
     WHERE patient_id = p_patient_id
     FOR UPDATE;
 
-    -- =====================================================
     -- KIỂM TRA VÍ
-    -- =====================================================
-
     IF v_balance IS NULL THEN
 
         ROLLBACK;
@@ -380,21 +346,12 @@ proc_main: BEGIN
         LEAVE proc_main;
 
     END IF;
-
-    -- =====================================================
-    -- KHÓA DỮ LIỆU CÔNG NỢ
-    -- =====================================================
-
+    
     SELECT total_due
     INTO v_total_due
     FROM Patient_Invoices
     WHERE patient_id = p_patient_id
     FOR UPDATE;
-
-    -- =====================================================
-    -- KIỂM TRA CÔNG NỢ
-    -- =====================================================
-
     IF v_total_due IS NULL THEN
 
         ROLLBACK;
@@ -416,11 +373,7 @@ proc_main: BEGIN
         LEAVE proc_main;
 
     END IF;
-
-    -- =====================================================
-    -- THỰC HIỆN THANH TOÁN
-    -- =====================================================
-
+    
     UPDATE Wallets
     SET balance = balance - p_amount
     WHERE patient_id = p_patient_id;
@@ -429,11 +382,6 @@ proc_main: BEGIN
     SET total_due = total_due - p_amount,
         last_updated = CURRENT_TIMESTAMP
     WHERE patient_id = p_patient_id;
-
-    -- =====================================================
-    -- COMMIT GIAO DỊCH
-    -- =====================================================
-
     COMMIT;
 
     SET p_status_message =
@@ -443,14 +391,8 @@ END //
 
 DELIMITER ;
 
--- =========================================================
--- PHẦN 6: KIỂM THỬ HỆ THỐNG
--- =========================================================
-
--- =====================================================
+-- KIỂM THỬ HỆ THỐNG
 -- TEST 1: GIAO DỊCH HỢP LỆ
--- =====================================================
-
 CALL ProcessPayment(1, 200000, @msg);
 
 SELECT @msg AS 'Ket qua';
@@ -461,15 +403,7 @@ WHERE patient_id = 1;
 SELECT * FROM Patient_Invoices
 WHERE patient_id = 1;
 
--- Kỳ vọng:
--- Wallet: 500000 -> 300000
--- total_due: 1500000 -> 1300000
-
-
--- =====================================================
 -- TEST 2: KHÔNG ĐỦ TIỀN
--- =====================================================
-
 CALL ProcessPayment(2, 400000, @msg);
 
 SELECT @msg AS 'Ket qua';
@@ -477,42 +411,16 @@ SELECT @msg AS 'Ket qua';
 SELECT * FROM Wallets
 WHERE patient_id = 2;
 
--- Kỳ vọng:
--- Báo lỗi không đủ tiền
--- Wallet vẫn giữ nguyên 50000
-
-
--- =====================================================
 -- TEST 3: SỐ TIỀN ÂM
--- =====================================================
-
 CALL ProcessPayment(1, -50000, @msg);
 
 SELECT @msg AS 'Ket qua';
 
--- Kỳ vọng:
--- Báo lỗi số tiền phải > 0
-
-
--- =====================================================
 -- TEST 4: VÍ BỊ KHÓA
--- =====================================================
-
 CALL ProcessPayment(3, 50000, @msg);
 
 SELECT @msg AS 'Ket qua';
 
--- Kỳ vọng:
--- Báo lỗi ví bị khóa
-
-
--- =====================================================
 -- TEST 5: THANH TOÁN VƯỢT CÔNG NỢ
--- =====================================================
-
 CALL ProcessPayment(2, 200000, @msg);
-
 SELECT @msg AS 'Ket qua';
-
--- Kỳ vọng:
--- Báo lỗi vượt công nợ
